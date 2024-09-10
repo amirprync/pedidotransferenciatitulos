@@ -92,22 +92,23 @@ def main():
         if st.session_state.instrumentos:
             st.table(pd.DataFrame(st.session_state.instrumentos))
 
-        # Formulario para agregar instrumentos (dentro del formulario principal)
+        # Botón de envío del formulario principal (al final)
+        submitted = st.form_submit_button("Enviar")
+
+    # Formulario para agregar instrumentos (fuera del formulario principal)
+    with st.form("agregar_instrumento"):
         st.subheader("Agregar nuevo instrumento")
-        col1, col2, col3 = st.columns([2, 2, 1])
+        col1, col2 = st.columns(2)
         with col1:
             ticker = st.text_input("Ticker del instrumento")
         with col2:
             cantidad = st.number_input("Cantidad", min_value=0, step=1)
-        with col3:
-            agregar_instrumento = st.form_submit_button("Agregar Instrumento")
+        
+        agregar_instrumento = st.form_submit_button("Agregar Instrumento")
 
-        if agregar_instrumento:
-            st.session_state.instrumentos.append({"ticker": ticker, "cantidad": cantidad})
-            st.experimental_rerun()
-
-        # Botón de envío del formulario principal (al final)
-        submitted = st.form_submit_button("Enviar")
+    if agregar_instrumento and ticker and cantidad > 0:
+        st.session_state.instrumentos.append({"ticker": ticker, "cantidad": cantidad})
+        st.success(f"Instrumento {ticker} agregado con cantidad {cantidad}")
 
     if submitted:
         data = {
