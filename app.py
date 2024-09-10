@@ -65,7 +65,7 @@ def create_pdf(data):
     return buffer
 
 def main():
-    st.title("Formulario de Transferencia")
+    st.title("Formulario de Transferencia de titutlos")
 
     # Inicializar la lista de instrumentos en el estado de la sesión si no existe
     if 'instrumentos' not in st.session_state:
@@ -125,7 +125,7 @@ def main():
         pdf = create_pdf(data)
         st.success("Formulario enviado con éxito")
         st.download_button(
-            label="Descargar PDF",
+            label="Descargar PDF - Recorda que este PDF debe ser enviado a la casilla titulos@cohen.com.ar. Siempre desde la casilla declarada por el comitente ",
             data=pdf,
             file_name="transferencia.pdf",
             mime="application/pdf"
