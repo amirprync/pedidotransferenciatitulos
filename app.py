@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
 from reportlab.lib.styles import getSampleStyleSheet
 from io import BytesIO
 
@@ -12,7 +12,21 @@ def create_pdf(data):
     elements = []
     
     styles = getSampleStyleSheet()
+    normal_style = styles['Normal']
     title_style = styles['Heading1']
+    
+    # Texto introductorio
+    intro_text = """
+    Sres. 
+    COHEN S.A.
+    Working Ocampo 
+    Ortiz de Ocampo 3302 Módulo 4 Piso 2
+    C1425DSV, C.A.B.A.
+    
+    Me dirijo a ustedes a fin de solicitarles, tengan a bien, transferir los siguiente títulos:
+    """
+    elements.append(Paragraph(intro_text, normal_style))
+    elements.append(Spacer(1, 12))  # Añade un espacio después del texto introductorio
     
     # Datos principales
     elements.append(Paragraph("Datos de la Transferencia", title_style))
@@ -65,7 +79,7 @@ def create_pdf(data):
     return buffer
 
 def main():
-    st.title("Formulario de Transferencia de titutlos")
+    st.title("Formulario de Transferencia")
 
     # Inicializar la lista de instrumentos en el estado de la sesión si no existe
     if 'instrumentos' not in st.session_state:
@@ -125,7 +139,7 @@ def main():
         pdf = create_pdf(data)
         st.success("Formulario enviado con éxito")
         st.download_button(
-            label="Descargar PDF - Recorda que este PDF debe ser enviado a la casilla titulos@cohen.com.ar. Siempre desde la casilla declarada por el comitente ",
+            label="Descargar PDF",
             data=pdf,
             file_name="transferencia.pdf",
             mime="application/pdf"
