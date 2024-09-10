@@ -11,3 +11,4 @@ fpdf
 inflect
 num2words
 fpdf2
+reportlab
