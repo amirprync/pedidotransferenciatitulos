@@ -1,0 +1,13 @@
+pandas
+streamlit
+altair
+lxml
+xlrd
+openpyxl
+streamlit
+python-docx
+pdfkit
+fpdf
+inflect
+num2words
+fpdf2
