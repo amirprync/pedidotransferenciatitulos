@@ -2,43 +2,42 @@ import streamlit as st
 import pandas as pd
 from reportlab.lib import colors
 from reportlab.lib.pagesizes import letter
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
+from reportlab.lib.styles import getSampleStyleSheet
 from io import BytesIO
 
 def create_pdf(data):
     buffer = BytesIO()
     doc = SimpleDocTemplate(buffer, pagesize=letter)
     elements = []
-
-    data_list = [["Campo", "Valor"]] + [[k, v] for k, v in data.items() if k != "instrumentos"]
+    
+    styles = getSampleStyleSheet()
+    title_style = styles['Heading1']
+    
+    # Datos principales
+    elements.append(Paragraph("Datos de la Transferencia", title_style))
+    data_list = [[k, v] for k, v in data.items() if k != "instrumentos"]
     t = Table(data_list)
     t.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-        ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-        ('FONTSIZE', (0, 0), (-1, 0), 14),
-        ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-        ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
-        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-        ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
-        ('FONTSIZE', (0, 1), (-1, -1), 12),
-        ('TOPPADDING', (0, 1), (-1, -1), 6),
-        ('BOTTOMPADDING', (0, 1), (-1, -1), 6),
+        ('BACKGROUND', (0, 0), (0, -1), colors.grey),
+        ('TEXTCOLOR', (0, 0), (0, -1), colors.whitesmoke),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('FONTNAME', (0, 0), (-1, -1), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 12),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+        ('BACKGROUND', (1, 0), (-1, -1), colors.beige),
+        ('TEXTCOLOR', (1, 0), (-1, -1), colors.black),
+        ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+        ('FONTNAME', (1, 0), (-1, -1), 'Helvetica'),
+        ('FONTSIZE', (1, 0), (-1, -1), 12),
+        ('TOPPADDING', (0, 0), (-1, -1), 6),
         ('GRID', (0, 0), (-1, -1), 1, colors.black)
     ]))
     elements.append(t)
 
+    # Instrumentos
+    elements.append(Paragraph("Instrumentos", title_style))
     if data["instrumentos"]:
-        elements.append(Table([["Instrumentos"]], style=[
-            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, 0), 14),
-            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-        ]))
         instrumentos_list = [["Ticker", "Cantidad"]] + [[i["ticker"], i["cantidad"]] for i in data["instrumentos"]]
         t_instrumentos = Table(instrumentos_list)
         t_instrumentos.setStyle(TableStyle([
@@ -46,7 +45,7 @@ def create_pdf(data):
             ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
             ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
             ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-            ('FONTSIZE', (0, 0), (-1, 0), 14),
+            ('FONTSIZE', (0, 0), (-1, 0), 12),
             ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
             ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
             ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
@@ -58,6 +57,8 @@ def create_pdf(data):
             ('GRID', (0, 0), (-1, -1), 1, colors.black)
         ]))
         elements.append(t_instrumentos)
+    else:
+        elements.append(Paragraph("No se agregaron instrumentos.", styles['Normal']))
 
     doc.build(elements)
     buffer.seek(0)
@@ -91,23 +92,22 @@ def main():
         if st.session_state.instrumentos:
             st.table(pd.DataFrame(st.session_state.instrumentos))
 
-        # Botón de envío del formulario principal
-        submitted = st.form_submit_button("Enviar")
-
-    # Formulario para agregar instrumentos (fuera del formulario principal)
-    with st.form("agregar_instrumento"):
+        # Formulario para agregar instrumentos (dentro del formulario principal)
         st.subheader("Agregar nuevo instrumento")
-        col1, col2 = st.columns(2)
+        col1, col2, col3 = st.columns([2, 2, 1])
         with col1:
             ticker = st.text_input("Ticker del instrumento")
         with col2:
             cantidad = st.number_input("Cantidad", min_value=0, step=1)
-        
-        agregar_instrumento = st.form_submit_button("Agregar Instrumento")
+        with col3:
+            agregar_instrumento = st.form_submit_button("Agregar Instrumento")
 
         if agregar_instrumento:
             st.session_state.instrumentos.append({"ticker": ticker, "cantidad": cantidad})
             st.experimental_rerun()
+
+        # Botón de envío del formulario principal (al final)
+        submitted = st.form_submit_button("Enviar")
 
     if submitted:
         data = {
